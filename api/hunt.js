@@ -6,6 +6,10 @@ const EXA_ENDPOINT = "https://api.exa.ai/search";
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-flash-latest";
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 // ---- Exa search helper ----
 async function exaSearch(body, apiKey) {
   const res = await fetch(EXA_ENDPOINT, {
@@ -184,7 +188,8 @@ Nơi làm việc ưu tiên: ${location || "(không bắt buộc)"}
 DỮ LIỆU PROFILE THÔ (JSON):
 ${JSON.stringify(compact)}`;
 
-  const res = await fetch(GEMINI_ENDPOINT, {
+async function callGemini() {
+  return fetch(GEMINI_ENDPOINT, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -200,10 +205,21 @@ ${JSON.stringify(compact)}`;
       },
     }),
   });
-
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Gemini API error (${res.status}): ${errText}`);
+}
+  let res;
+  let lastErrText = "";
+  const maxRetries = 4;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    res = await callGemini();
+    if (res.ok) break;
+    const retryable = res.status === 503 || res.status === 429 || res.status === 500;
+    lastErrText = await res.text();
+    if (!retryable || attempt === maxRetries) {
+      throw new Error(`Gemini API error (${res.status}): ${lastErrText}`);
+    }
+    const delay = 1000 * Math.pow(2, attempt) + Math.floor(Math.random() * 300);
+    console.warn(`Gemini ${res.status}, retry ${attempt + 1}/${maxRetries} sau ${delay}ms`);
+    await sleep(delay);
   }
 
   const data = await res.json();

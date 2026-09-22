@@ -138,7 +138,7 @@ function softFail(platform, e) {
 
 // ---- Gemini scoring (free tier) ----
 async function scoreWithGemini({ jd, position, skills, minExperience, location, candidates }, geminiKey) {
-  const compact = candidates.slice(0, 25).map((c, i) => ({
+  const compact = candidates.slice(0, 60).map((c, i) => ({
     idx: i,
     platform: c.platform,
     url: c.url,
@@ -188,35 +188,40 @@ Nơi làm việc ưu tiên: ${location || "(không bắt buộc)"}
 DỮ LIỆU PROFILE THÔ (JSON):
 ${JSON.stringify(compact)}`;
 
-async function callGemini() {
-  return fetch(GEMINI_ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-goog-api-key": geminiKey,
-    },
-    body: JSON.stringify({
-      system_instruction: { parts: [{ text: system }] },
-      contents: [{ role: "user", parts: [{ text: user }] }],
-      generationConfig: {
-        temperature: 0.2,
-        maxOutputTokens: 8000,
-        responseMimeType: "application/json",
+  async function callGemini() {
+    return fetch(GEMINI_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": geminiKey,
       },
-    }),
-  });
-}
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: system }] },
+        contents: [{ role: "user", parts: [{ text: user }] }],
+        generationConfig: {
+          temperature: 0.2,
+          maxOutputTokens: 32000,
+          responseMimeType: "application/json",
+        },
+      }),
+    });
+  }
+
+  // Retry với backoff cho lỗi tạm thời (503 quá tải / 429 rate limit / 500)
   let res;
   let lastErrText = "";
   const maxRetries = 4;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     res = await callGemini();
     if (res.ok) break;
+
     const retryable = res.status === 503 || res.status === 429 || res.status === 500;
     lastErrText = await res.text();
+
     if (!retryable || attempt === maxRetries) {
       throw new Error(`Gemini API error (${res.status}): ${lastErrText}`);
     }
+
     const delay = 1000 * Math.pow(2, attempt) + Math.floor(Math.random() * 300);
     console.warn(`Gemini ${res.status}, retry ${attempt + 1}/${maxRetries} sau ${delay}ms`);
     await sleep(delay);
@@ -273,7 +278,7 @@ export default async function handler(req, res) {
       location = "",
       skills = "",
       minExperience = 3,
-      perPlatform = 6,
+      perPlatform = 15,
     } = body;
 
     if (!jd || !position) {
@@ -284,7 +289,7 @@ export default async function handler(req, res) {
     const rawCandidates = await huntProfiles(
       { position, location, skills, jd },
       exaKey,
-      Math.min(Math.max(parseInt(perPlatform) || 6, 3), 10)
+      Math.min(Math.max(parseInt(perPlatform) || 15, 3), 20)
     );
 
     if (rawCandidates.length === 0) {

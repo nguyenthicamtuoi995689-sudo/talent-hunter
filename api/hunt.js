@@ -3,7 +3,7 @@
 // Flow: JD -> Exa (tìm profile thật trên nhiều nền tảng) -> Gemini (trích xuất + chấm điểm)
 
 const EXA_ENDPOINT = "https://api.exa.ai/search";
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.6-flash";
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-flash-latest";
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 // ---- Exa search helper ----

@@ -138,7 +138,7 @@ function softFail(platform, e) {
 
 // ---- Gemini scoring (free tier) ----
 async function scoreWithGemini({ jd, position, skills, minExperience, location, candidates }, geminiKey) {
-  const compact = candidates.slice(0, 60).map((c, i) => ({
+  const compact = candidates.map((c, i) => ({
     idx: i,
     platform: c.platform,
     url: c.url,
@@ -173,7 +173,8 @@ Trả về DUY NHẤT một JSON hợp lệ, KHÔNG có markdown, KHÔNG có tex
 
 QUY TẮC:
 - CHỈ dùng thông tin có trong dữ liệu. Không bịa email/sđt. Nếu không có thì để chuỗi rỗng.
-- Nếu một mục rõ ràng KHÔNG phải profile ứng viên (vd trang tin, danh sách job), bỏ qua, không đưa vào kết quả.
+- BẮT BUỘC: mỗi mục trong dữ liệu đầu vào (mỗi idx) PHẢI xuất hiện trong "candidates" của kết quả, kể cả khi thông tin rất ít hoặc không rõ có phù hợp hay không — trong trường hợp đó vẫn chấm điểm (có thể thấp) và ghi rõ trong "reason" là thiếu dữ liệu để đánh giá chính xác. Không được tự ý bỏ bớt idx nào.
+- CHỈ bỏ qua một idx nếu chắc chắn 100% đó KHÔNG phải trang cá nhân/profile của một người cụ thể (vd trang chủ công ty chung chung, bài báo tin tức, trang danh sách nhiều job không gắn với 1 ứng viên). Khi bỏ qua, vẫn phải đưa idx đó vào kết quả với score=0 và reason giải thích lý do loại, để tổng số candidates trong kết quả LUÔN BẰNG tổng số mục trong dữ liệu đầu vào.
 - score = 0.4*skills + 0.3*experience + 0.15*status + 0.15*location (làm tròn).
 - Sắp xếp candidates theo score giảm dần.`;
 
@@ -200,7 +201,7 @@ ${JSON.stringify(compact)}`;
         contents: [{ role: "user", parts: [{ text: user }] }],
         generationConfig: {
           temperature: 0.2,
-          maxOutputTokens: 32000,
+          maxOutputTokens: 65536,
           responseMimeType: "application/json",
         },
       }),

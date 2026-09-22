@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Talent Hunter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1115;
+    --panel:#171a21;
+    --panel-2:#1e222b;
+    --line:#2a2f3a;
+    --ink:#e8eaed;
+    --ink-dim:#9aa2ad;
+    --ink-faint:#6b7280;
+    --accent:#5b8cff;
+    --accent-2:#7c5cff;
+    --good:#34d399;
+    --mid:#fbbf24;
+    --low:#f87171;
+    --field:#12151b;
+    box-sizing:border-box;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    line-height:1.5;
+    padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0);
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1120px;margin:0 auto;padding:28px 20px 80px}
+
+  header.top{
+    display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+    padding-bottom:22px;border-bottom:1px solid var(--line);margin-bottom:28px;
+  }
+  .logo{
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:22px;letter-spacing:-.01em;
+    display:flex;align-items:center;gap:9px;
+  }
+  .logo .dot{width:11px;height:11px;border-radius:50%;
+    background:radial-gradient(circle at 30% 30%,var(--accent),var(--accent-2));
+    box-shadow:0 0 14px rgba(91,140,255,.6);}
+  .tagline{color:var(--ink-dim);font-size:13.5px}
+
+  .grid{display:grid;grid-template-columns:400px 1fr;gap:24px;align-items:start}
+  @media(max-width:880px){.grid{grid-template-columns:1fr}}
+
+  /* form panel */
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px}
+  .panel h2{font-size:15px;font-weight:600;margin-bottom:4px}
+  .panel .sub{color:var(--ink-faint);font-size:12.5px;margin-bottom:18px}
+
+  label{display:block;font-size:12.5px;font-weight:500;color:var(--ink-dim);margin:14px 0 6px}
+  input,textarea{
+    width:100%;background:var(--field);border:1px solid var(--line);color:var(--ink);
+    border-radius:9px;padding:11px 12px;font-family:inherit;font-size:14px;transition:border-color .15s;
+  }
+  input:focus,textarea:focus{outline:none;border-color:var(--accent)}
+  textarea{resize:vertical;min-height:150px;line-height:1.55}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+  .hunt-btn{
+    width:100%;margin-top:20px;padding:13px;border:none;border-radius:10px;cursor:pointer;
+    font-family:inherit;font-weight:600;font-size:15px;color:#fff;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    transition:transform .1s,box-shadow .2s;
+  }
+  .hunt-btn:hover:not(:disabled){box-shadow:0 8px 24px rgba(91,140,255,.35)}
+  .hunt-btn:active:not(:disabled){transform:translateY(1px)}
+  .hunt-btn:disabled{opacity:.55;cursor:progress}
+
+  .hint{font-size:11.5px;color:var(--ink-faint);margin-top:12px;line-height:1.5}
+  .hint code{background:var(--panel-2);padding:1px 5px;border-radius:4px;color:var(--ink-dim)}
+
+  /* results */
+  .results-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap}
+  .results-head h2{font-size:16px;font-weight:600}
+  .count-pill{background:var(--panel-2);border:1px solid var(--line);border-radius:999px;
+    padding:3px 11px;font-size:12.5px;color:var(--ink-dim)}
+  .export{background:var(--panel-2);border:1px solid var(--line);color:var(--ink-dim);
+    border-radius:8px;padding:7px 12px;font-size:12.5px;cursor:pointer;font-family:inherit}
+  .export:hover{border-color:var(--accent);color:var(--ink)}
+
+  .empty{border:1px dashed var(--line);border-radius:14px;padding:56px 24px;text-align:center;color:var(--ink-faint)}
+  .empty .big{font-size:15px;color:var(--ink-dim);margin-bottom:6px}
+
+  /* candidate row */
+  .cand{
+    background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--line);
+    border-radius:12px;padding:18px 20px;margin-bottom:12px;transition:border-color .15s;
+  }
+  .cand:hover{border-color:#3a4150}
+  .cand.s-good{border-left-color:var(--good)}
+  .cand.s-mid{border-left-color:var(--mid)}
+  .cand.s-low{border-left-color:var(--low)}
+
+  .cand-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+  .cand-name{font-size:16.5px;font-weight:600;font-family:'Space Grotesk',sans-serif}
+  .cand-role{color:var(--ink-dim);font-size:13px;margin-top:2px}
+  .cand-role b{color:var(--ink);font-weight:600}
+
+  .score{text-align:right;flex-shrink:0}
+  .score .num{font-family:'Space Grotesk',sans-serif;font-size:30px;font-weight:700;line-height:1}
+  .s-good .score .num{color:var(--good)}
+  .s-mid .score .num{color:var(--mid)}
+  .s-low .score .num{color:var(--low)}
+  .score .lbl{font-size:11px;color:var(--ink-faint);margin-top:2px}
+
+  .meta-row{display:flex;flex-wrap:wrap;gap:8px 18px;margin:14px 0;font-size:13px;color:var(--ink-dim)}
+  .meta-row .m{display:flex;align-items:center;gap:6px}
+  .meta-row a{color:var(--accent);text-decoration:none}
+  .meta-row a:hover{text-decoration:underline}
+  .plat{font-size:11px;color:var(--ink-faint);border:1px solid var(--line);border-radius:6px;padding:2px 7px}
+
+  .skills{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+  .sk{font-size:11.5px;background:var(--panel-2);border:1px solid var(--line);color:var(--ink-dim);
+    border-radius:6px;padding:3px 9px}
+
+  .reason{font-size:12.5px;color:var(--ink-faint);margin-top:10px;font-style:italic;
+    border-top:1px solid var(--line);padding-top:10px}
+
+  .bd{display:flex;gap:14px;margin-top:12px;flex-wrap:wrap}
+  .bd .b{font-size:11px;color:var(--ink-faint)}
+  .bd .b b{color:var(--ink-dim);font-weight:600}
+
+  .actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+  .actions a{font-size:12.5px;text-decoration:none;background:var(--panel-2);border:1px solid var(--line);
+    color:var(--ink-dim);border-radius:8px;padding:7px 13px;transition:.15s}
+  .actions a:hover{border-color:var(--accent);color:var(--ink)}
+
+  /* loading */
+  .loading{border:1px solid var(--line);border-radius:14px;padding:48px 24px;text-align:center}
+  .spinner{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--accent);
+    border-radius:50%;margin:0 auto 16px;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading .l1{font-size:14px;color:var(--ink);margin-bottom:4px}
+  .loading .l2{font-size:12.5px;color:var(--ink-faint)}
+
+  .err{border:1px solid var(--low);background:rgba(248,113,113,.08);border-radius:12px;
+    padding:16px 18px;color:#fca5a5;font-size:13.5px}
+  .err b{color:#fecaca}
+  @media(prefers-reduced-motion:reduce){.spinner{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="logo"><span class="dot"></span>Talent Hunter</div>
+    <span class="tagline">Tìm profile ứng viên thật trên LinkedIn, GitHub, TopDev, Vieclam24h, Ybox & portfolio — chấm điểm theo JD bằng Claude.</span>
+  </header>
+
+  <div class="grid">
+    <!-- FORM -->
+    <div class="panel" id="formPanel">
+      <h2>Chiến dịch mới</h2>
+      <p class="sub">Điền JD, hệ thống sẽ đi tìm và xếp hạng ứng viên.</p>
+
+      <label>Vị trí cần tuyển</label>
+      <input id="position" placeholder="Senior Full-Stack Developer">
+
+      <div class="two">
+        <div>
+          <label>Nơi làm việc</label>
+          <input id="location" placeholder="Ho Chi Minh, Remote">
+        </div>
+        <div>
+          <label>KN tối thiểu (năm)</label>
+          <input id="minExp" type="number" value="3" min="0">
+        </div>
+      </div>
+
+      <label>Kỹ năng chính (phẩy)</label>
+      <input id="skills" placeholder="React, Node.js, TypeScript, AWS">
+
+      <label>Job Description</label>
+      <textarea id="jd" placeholder="Dán toàn bộ JD vào đây…"></textarea>
+
+      <button class="hunt-btn" id="huntBtn" onclick="hunt()">Bắt đầu tìm ứng viên</button>
+
+      <p class="hint">
+        Kết quả là link profile công khai thật do Exa truy xuất. Contact (email/sđt) chỉ hiển thị khi ứng viên công khai trên trang nguồn.
+      </p>
+    </div>
+
+    <!-- RESULTS -->
+    <div>
+      <div class="results-head">
+        <h2>Kết quả</h2>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="count-pill" id="countPill" style="display:none"></span>
+          <button class="export" id="exportBtn" style="display:none" onclick="exportJSON()">Xuất JSON</button>
+        </div>
+      </div>
+      <div id="out">
+        <div class="empty">
+          <div class="big">Chưa có ứng viên nào</div>
+          <div>Điền JD bên trái rồi bấm “Bắt đầu tìm ứng viên”.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let lastResults = [];
+
+function val(id){ return document.getElementById(id).value.trim(); }
+
+async function hunt(){
+  const jd = val('jd'), position = val('position');
+  if(!jd || !position){ alert('Cần nhập ít nhất Vị trí và Job Description.'); return; }
+
+  const btn = document.getElementById('huntBtn');
+  const out = document.getElementById('out');
+  btn.disabled = true; btn.textContent = 'Đang tìm…';
+  document.getElementById('exportBtn').style.display='none';
+  document.getElementById('countPill').style.display='none';
+
+  out.innerHTML = `<div class="loading">
+    <div class="spinner"></div>
+    <div class="l1">Đang truy xuất profile từ các nền tảng…</div>
+    <div class="l2">LinkedIn · GitHub · TopDev · Vieclam24h · Ybox · Portfolio — rồi Claude chấm điểm theo JD</div>
+  </div>`;
+
+  try{
+    const res = await fetch('/api/hunt',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        jd, position,
+        location: val('location'),
+        skills: val('skills'),
+        minExperience: parseInt(val('minExp'))||3,
+        perPlatform: 6
+      })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Lỗi server');
+
+    lastResults = data.candidates || [];
+    render(lastResults, data.meta);
+  }catch(e){
+    out.innerHTML = `<div class="err"><b>Không tìm được.</b><br>${e.message}</div>`;
+  }finally{
+    btn.disabled = false; btn.textContent = 'Bắt đầu tìm ứng viên';
+  }
+}
+
+function cls(score){ return score>=75?'s-good':score>=50?'s-mid':'s-low'; }
+function esc(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function render(list, meta){
+  const out = document.getElementById('out');
+  const pill = document.getElementById('countPill');
+
+  if(!list.length){
+    out.innerHTML = `<div class="empty"><div class="big">Không có ứng viên phù hợp</div>
+      <div>${meta && meta.note ? esc(meta.note) : 'Thử nới lỏng vị trí, kỹ năng hoặc bỏ trống nơi làm việc.'}</div></div>`;
+    return;
+  }
+
+  pill.style.display='inline-block';
+  pill.textContent = `${list.length} ứng viên · quét ${meta?.found_raw??'?'} profile`;
+  document.getElementById('exportBtn').style.display='inline-block';
+
+  out.innerHTML = list.map(c=>{
+    const score = Math.round(c.score||0);
+    const skills = (c.skills||[]).slice(0,12).map(s=>`<span class="sk">${esc(s)}</span>`).join('');
+    const b = c.breakdown||{};
+    const contact = [];
+    if(c.email) contact.push(`<span class="m">✉ <a href="mailto:${esc(c.email)}">${esc(c.email)}</a></span>`);
+    if(c.phone) contact.push(`<span class="m">☎ <a href="tel:${esc(c.phone)}">${esc(c.phone)}</a></span>`);
+    if(c.location) contact.push(`<span class="m">◍ ${esc(c.location)}</span>`);
+    if(c.status) contact.push(`<span class="m">● ${esc(c.status)}</span>`);
+
+    return `<div class="cand ${cls(score)}">
+      <div class="cand-top">
+        <div>
+          <div class="cand-name">${esc(c.name||'Không rõ tên')}</div>
+          <div class="cand-role">${esc(c.current_position||'—')}${c.current_company?` · <b>${esc(c.current_company)}</b>`:''}</div>
+        </div>
+        <div class="score"><div class="num">${score}</div><div class="lbl">/100 match</div></div>
+      </div>
+
+      <div class="meta-row">
+        <span class="plat">${esc(c.platform||'—')}</span>
+        ${contact.join('')}
+      </div>
+
+      ${skills?`<div class="skills">${skills}</div>`:''}
+
+      <div class="bd">
+        <span class="b"><b>Skills</b> ${Math.round(b.skills||0)}</span>
+        <span class="b"><b>Kinh nghiệm</b> ${Math.round(b.experience||0)}</span>
+        <span class="b"><b>Tình trạng</b> ${Math.round(b.status||0)}</span>
+        <span class="b"><b>Vị trí</b> ${Math.round(b.location||0)}</span>
+      </div>
+
+      ${c.reason?`<div class="reason">${esc(c.reason)}</div>`:''}
+
+      <div class="actions">
+        ${c.profile_url?`<a href="${esc(c.profile_url)}" target="_blank" rel="noopener">Mở profile ↗</a>`:''}
+        ${c.email?`<a href="mailto:${esc(c.email)}">Gửi email</a>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function exportJSON(){
+  const blob = new Blob([JSON.stringify(lastResults,null,2)],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=`candidates-${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>

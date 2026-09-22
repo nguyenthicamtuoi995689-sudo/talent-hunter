@@ -1,0 +1,13 @@
+{
+  "name": "recruiting-hunter",
+  "version": "1.0.0",
+  "description": "Hunt candidate profiles across platforms using Exa + Claude",
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
